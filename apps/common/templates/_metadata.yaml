@@ -1,0 +1,13 @@
+{{- define "common.metadata" -}}
+metadata:
+  name: {{ include "common.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "common.name" . }}
+    helm.sh/chart: {{ include "common.chart" . }}
+    app.kubernetes.io/instance: {{ include "common.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app: {{ include "common.name" . }}
+    version: {{ .Chart.AppVersion | quote }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+{{- end -}}

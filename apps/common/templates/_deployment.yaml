@@ -1,0 +1,66 @@
+{{- define "common.deployment" -}}
+{{- $common := dict "Values" .Values.common -}} 
+{{- $noCommon := omit .Values "common" -}} 
+{{- $overrides := dict "Values" $noCommon -}} 
+{{- $noValues := omit . "Values" -}} 
+{{- with merge $noValues $overrides $common -}}
+
+{{ .Values.global }}
+
+apiVersion: apps/v1
+kind: Deployment
+{{ template "common.metadata" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2        # how many pods we can add at a time
+      maxUnavailable: 0  # maxUnavailable define how many pods can be unavailable during the rolling update
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "common.name" . }}
+      app.kubernetes.io/instance: {{ include "common.name" . }}
+      app: {{ include "common.name" . }}
+      version: {{ .Chart.AppVersion | quote }}
+  template:
+    metadata:
+      annotations:
+        co.elastic.logs/enabled: "true"
+      labels:
+        app.kubernetes.io/name: {{ include "common.name" . }}
+        app.kubernetes.io/instance: {{ include "common.name" . }}
+        app: {{ include "common.name" . }}
+        version: {{ .Chart.AppVersion | quote }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name | quote}} 
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}/{{ template "common.name" . }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          livenessProbe:
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr=:9090"]
+            initialDelaySeconds: 10
+          readinessProbe:
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr=:9090"]
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.fullname" . }}
+      volumes:
+        - name: {{ include "common.fullname" . }}
+          configMap:
+            name: {{ include "common.fullname" . }}
+
+{{- end -}}
+{{- end -}}
