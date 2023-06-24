@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: emails-service
+  namespace: argocd
+  labels:
+    app: emails-service
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: apps/emails
+    repoURL: git@github.com:kappapay/argocd.git
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+        - values.yaml
+        - ../common/data/environment-values.yaml
