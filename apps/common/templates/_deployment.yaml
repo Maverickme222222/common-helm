@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ pluck .Values.override.authentication .Values.images.authentication | first | default (index .Values.images.authentication .Values.default_ref) }}"
+          image: "{{ .Values.image.repository }}:{{ pluck .Values.override.emails .Values.images.emails | first | default (index .Values.images.emails .Values.default_ref) }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
