@@ -30,8 +30,8 @@ spec:
         app.kubernetes.io/instance: {{ include "common.name" . }}
         app: {{ include "common.name" . }}
         version: {{ .Chart.AppVersion | quote }}
+        test: {{ .Values.override.authentication | quote }}
     spec:
-      serviceAccountName: {{ .Values.serviceAccount.name | quote}} 
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}/{{ template "common.name" . }}:{{ .Values.image.tag }}"
